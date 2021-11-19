@@ -2,6 +2,6 @@
 using namespace std;
 
 int main(){
-  std::count << "YOO" ;  
+  std::cout << "YOO" ;  
   return 0;
 }
