@@ -54,6 +54,17 @@ class Tensor (object):
                         if(self.creation_op == "add"):
                             self.creators[0].backward(self.grad, self)
                             self.creators[1].backward(self.grad, self)
+                        
+                        if(self.creation_op =="neg"):
+                            self.creators[0].backward(self.grad.__neg__())
+    def __neg__(self):
+        if(self.autograd):
+            return Tensor(self.data *-1,
+                          autograd=True,
+                          creators=[self],
+                          creation_op="neg")
+        return Tensor(self.data *-1)
+
 
     def __add__(self, other):
         if(self.autograd and other.autograd):
@@ -65,6 +76,13 @@ class Tensor (object):
 
         return Tensor(self.data + other.data)
     
+    def __sub__(self, other):
+        if(self.autograd and other.autograd):
+            return Tensor(self.data - other.data,
+                          autograd=True,
+
+
+
     def __repr__(self):
         return str(self.data.__repr__())
     
@@ -77,8 +95,8 @@ a = Tensor([1,2,3,4,5], autograd= True)
 b = Tensor([2,2,2,2,2], autograd = True)
 c = Tensor([5,4,3,2,1], autograd = True)
 
-d = a+b
-e = b+c
+d = a-b
+e = -b+c
 f = d+e
 
 f.backward(Tensor(np.array([1,1,1,1,1])))
