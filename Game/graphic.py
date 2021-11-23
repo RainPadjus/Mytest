@@ -10,7 +10,7 @@ tail = [[0,0]]
 direction = "right"
 add_point = False
 i=5
-board = [["•" for i in range(10)] for i in range(10)]
+board = [["·" for i in range(10)] for i in range(10)]
 
 def add():
     global tail
@@ -48,7 +48,7 @@ def update_tail():
 
 def render():
     global x,y
-    board = [["•" for i in range(10)] for i in range(10)]
+    board = [["·" for i in range(10)] for i in range(10)]
     for points in tail:
         board[points[0]][points[1]] = "X"
     if x and y: board[x][y] = "O"
@@ -98,11 +98,11 @@ def game():
        keyboard.add_hotkey('down', down)
        keyboard.add_hotkey('left', left)
        keyboard.add_hotkey('right', right)
-       time.sleep(0.2)
+       time.sleep(0.1)
        update_tail()
        render()
        
-       if (time.time() - a) >= 5:
+       if (time.time() - a) >= 4:
            x = random.randint(0, 9)
            y = random.randint(0, 9)
            a = time.time()
