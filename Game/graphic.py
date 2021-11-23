@@ -5,6 +5,7 @@ import random
 x = False
 y = False
 
+game = True
 tail = [[0,0]]
 direction = "right"
 add_point = False
@@ -16,7 +17,7 @@ def add():
     tail.append(tail[-1].copy())
 
 def update_tail():
-    global add_point, tail, direction, x, y
+    global game, add_point, tail, direction, x, y
 
     buff=[]
         
@@ -38,10 +39,13 @@ def update_tail():
     if direction == "right":
         tail[0][1] = (tail[0][1]+1)%10
     
+    if tail[0] in tail[1:]:
+        game = False
     if (tail[0][0] == x) and (tail[0][1] == y):
         x=False
         y=False
         add()
+
 def render():
     global x,y
     board = [["•" for i in range(10)] for i in range(10)]
@@ -56,36 +60,53 @@ def render():
 
 def up():
     global direction
-    direction = 'up'
+    if direction != "down":
+        direction = 'up'
+    elif direction == 'down' and len(tail)==1:
+        direction = 'up'
+    else: pass
 
 def down():
     global direction
-    direction = 'down'
+    if direction != "up":
+        direction = 'down'
+    elif direction =='up' and len(tail)==1:
+        direction = 'down'
+    else: pass
 
 def right():
     global direction
-    direction = 'right'
+    if direction != "left":
+        direction = 'right'
+    elif direction == 'left' and len(tail)==1:
+        direction ='right'
+    else: pass
 
 def left():
     global direction
-    direction = 'left'
+    if direction != "right":
+        direction = 'left'
+    elif direction == "right" and len(tail)==1:
+        direction = 'left'
+    else: pass
 
 def game():
-   global x, y, board , direction
+   global game, x, y, board , direction
    a = time.time()
-   while True:
+   while game:
        keyboard.add_hotkey('up', up)
        keyboard.add_hotkey('down', down)
        keyboard.add_hotkey('left', left)
        keyboard.add_hotkey('right', right)
-       time.sleep(0.5)
+       time.sleep(0.2)
        update_tail()
        render()
        
-       if (time.time() - a) >= 10:
+       if (time.time() - a) >= 5:
            x = random.randint(0, 9)
            y = random.randint(0, 9)
            a = time.time()
+   print("GAME OVER : FINAL SCORE {}".format(len(tail)))
 game()
 
 keyboard.wait()
