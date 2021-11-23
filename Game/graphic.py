@@ -1,21 +1,24 @@
 import time
 import keyboard
+import random
 
-global x, y
-#x = 0
-#y = 0
-tail = [[0,0], [1,0], [2,0], [3,0]]
+x = False
+y = False
+
+tail = [[0,0]]
 direction = "right"
 add_point = False
-
+i=5
 board = [["•" for i in range(10)] for i in range(10)]
 
+def add():
+    global tail
+    tail.append(tail[-1].copy())
+
 def update_tail():
-    global add_point, tail, direction
+    global add_point, tail, direction, x, y
 
     buff=[]
-    if add_point:
-        buff= tail[-1].copy()
         
     for i in range(len(tail)-1):
         #print(tail[len(tail)-i-1])
@@ -34,17 +37,17 @@ def update_tail():
     
     if direction == "right":
         tail[0][1] = (tail[0][1]+1)%10
-
-    if add_point:
-        tail.append(buff)
-        print("APPENDED TAIL")
-        add_point = False
-
+    
+    if (tail[0][0] == x) and (tail[0][1] == y):
+        x=False
+        y=False
+        add()
 def render():
+    global x,y
     board = [["•" for i in range(10)] for i in range(10)]
     for points in tail:
         board[points[0]][points[1]] = "X"
-
+    if x and y: board[x][y] = "O"
     print("\033[F"*30)
     for i in board:
         for j in i:
@@ -68,22 +71,21 @@ def left():
     direction = 'left'
 
 def game():
-   global board, x, y, direction
-   # keyboard.add_hotkey('up', up)
-   # keyboard.add_hotkey('down', down)
-   # keyboard.add_hotkey('left', left)
-   # keyboard.add_hotkey('right', right)
-   # keyboard.wait()
-   pp=3
+   global x, y, board , direction
+   a = time.time()
    while True:
        keyboard.add_hotkey('up', up)
        keyboard.add_hotkey('down', down)
        keyboard.add_hotkey('left', left)
        keyboard.add_hotkey('right', right)
-       time.sleep(0.2)
-       print(tail)
+       time.sleep(0.5)
        update_tail()
        render()
+       
+       if (time.time() - a) >= 10:
+           x = random.randint(0, 9)
+           y = random.randint(0, 9)
+           a = time.time()
 game()
 
 keyboard.wait()
