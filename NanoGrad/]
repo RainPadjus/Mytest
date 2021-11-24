@@ -306,57 +306,49 @@ np.random.seed(0)
 
 x_train = x_train.astype("float32") / 255
 
-x_train = x_train.reshape(60000, 28*28)
-y_train = y_train
+x_train = x_train.reshape(60000, 28*28)[:10000]
+y_train = y_train[:10000]
 
 new = [[0 for i in range(10)] for j in range(len(y_train))]
 
 for x, i in enumerate(y_train):
     new[x][i] = 1
 
-y_train = np.array(new)
-x_train = np.array(x_train)
-
-data = Tensor(x_train, autograd = True)
-target = Tensor(y_train, autograd = True)
+y_train = new
+data = Tensor(x_train[0], autograd = True)
+target = Tensor(y_train[0], autograd = True)
 
 #print(data.data)
 #print(target.data)
 
-#data = Tensor(np.array([[0,1,0,0,1,0], [1,1,1,0,0,0]]), autograd=True)
-#target = Tensor(np.array([[0,0,1,1,1,0,0,1,1,1], [1,0,1,0,1,0,1,0,1,0]]), autograd = True)
-
-
+#data = Tensor(np.array([[0]]), autograd=True)
+#target = Tensor(np.array([[0]), autograd = True)
 
 #model = Sequential([Linear(28*28,40), Tanh(), Linear(40, 10), Tanh(), Linear(10,10)])
-model = Sequential([Linear(28*28,40), Tanh(), Linear(40,20), Tanh(), Linear(20,10), Sigmoid()])
+model = Sequential([Linear(784,40), Tanh(), Linear(40,10)])
 
 
 criterion = MSELoss()
 
-optim = SGD(parameters = model.get_parameters(), alpha=0.000005)
+optim = SGD(parameters = model.get_parameters(), alpha=0.01)
 
-for i in range(1000):
+for i in range(2):
     pred = model.forward(data)
-    #print("DATA.shape = ", data.data.shape) 
-    #print("PRED.shape = ", pred.data.shape)
-    #print("TARGET.shape = ", target.data.shape)
-    #print("PRED = ", pred)
-    #print("TARGET = ", target)
-    #if i>1: break
+    print("DATA.shape = ", data.data.shape) 
+    print("PRED.shape = ", pred.data.shape)
+    print("PRED[0] = ", pred.data[0])
+    print("PRED[1] = ", pred.data[1])
+    print("\n\n")
+    if i>1: break
     loss = criterion.forward(pred, target)
-    print("STEP {} \ LOSS {}".format(i, (np.sum(loss.data) /60000)))
+    print("LOSS ", loss)
     loss.backward(Tensor(np.ones_like(loss.data)))
     optim.step()
     np.set_printoptions(suppress=True)
+    #print("STEP {} \ LOSS {}".format(i, sum(loss.data)))
 
 
 
 
 print("NOW MODEL IS TRAINED")
 
-for z in [1,22,33,55,100,10]:
-    x= x_train[z]
-    x = Tensor(x)
-    pp = model.forward(x)
-    print("PRED: {} / REAL: {}".format(pp.data[z].argmax(), y_train[z].argmax()))
