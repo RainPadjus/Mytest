@@ -306,8 +306,8 @@ np.random.seed(0)
 
 x_train = x_train.astype("float32") / 255
 
-x_train = x_train.reshape(60000, 28*28)
-y_train = y_train
+x_train = x_train.reshape(60000, 28*28)[:20000]
+y_train = y_train[:20000]
 
 new = [[0 for i in range(10)] for j in range(len(y_train))]
 
@@ -329,14 +329,14 @@ target = Tensor(y_train, autograd = True)
 
 
 #model = Sequential([Linear(28*28,40), Tanh(), Linear(40, 10), Tanh(), Linear(10,10)])
-model = Sequential([Linear(28*28,40), Tanh(), Linear(40,20), Tanh(), Linear(20,10), Sigmoid()])
+model = Sequential([Linear(28*28,60), Tanh(), Linear(60,20), Tanh(), Linear(20,10), Sigmoid()])
 
 
 criterion = MSELoss()
 
-optim = SGD(parameters = model.get_parameters(), alpha=0.000005)
+optim = SGD(parameters = model.get_parameters(), alpha=0.00005)
 
-for i in range(1000):
+for i in range(200):
     pred = model.forward(data)
     #print("DATA.shape = ", data.data.shape) 
     #print("PRED.shape = ", pred.data.shape)
@@ -355,7 +355,7 @@ for i in range(1000):
 
 print("NOW MODEL IS TRAINED")
 
-for z in [1,22,33,55,100,10]:
+for z in [1,22,33,55,100,10, 66,67,68,69,70]:
     x= x_train[z]
     x = Tensor(x)
     pp = model.forward(x)
