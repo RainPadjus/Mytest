@@ -1,5 +1,5 @@
 import numpy as np
-
+from matplotlib import pyplot as plt
 
 ###### ######  #   #  #####  ####  ###
    #   ##      ##  #  #      #  #  #  #
@@ -302,53 +302,143 @@ from tensorflow import keras
 
 (x_train, y_train), (x_test, y_test) = keras.datasets.mnist.load_data()
 
+
+
+#####GAN
 np.random.seed(0)
 
 x_train = x_train.astype("float32") / 255
 
-x_train = x_train.reshape(60000, 28*28)[:10000]
-y_train = y_train[:10000]
+x_train = x_train.reshape(60000, 28*28)[:1000]
+y_train = y_train[:1000]
 
-new = [[0 for i in range(10)] for j in range(len(y_train))]
 
-for x, i in enumerate(y_train):
-    new[x][i] = 1
+x_train_noise = np.random.random(x_train.shape)
 
-y_train = new
-data = Tensor(x_train[0], autograd = True)
-target = Tensor(y_train[0], autograd = True)
+one = np.ones(y_train.shape)
+zero = np.zeros(y_train.shape)
+
+x_train = np.concatenate((x_train, x_train_noise))
+y_train = np.concatenate((one, zero))
+
+y_train = y_train.reshape(2000, 1)
+
+
+###############
+
+#np.random.seed(0)
+
+#x_train = x_train.astype("float32") / 255
+
+#x_train = x_train.reshape(60000, 28*28)[:1000]
+#y_train = y_train[:1000]
+
+#x_train_nose = np.random.random(x_train.shape)
+
+
+
+#new = [[0 for i in range(10)] for j in range(len(y_train))]
+
+#for x, i in enumerate(y_train):
+#    new[x][i] = 1
+
+#y_train = np.array(new)
+#x_train = np.array(x_train)
+
+data = Tensor(x_train, autograd = True)
+target = Tensor(y_train, autograd = True)
+
 
 #print(data.data)
 #print(target.data)
 
-#data = Tensor(np.array([[0]]), autograd=True)
-#target = Tensor(np.array([[0]), autograd = True)
+
+#TOY GAME DATASET
+# data = Tensor(np.array([[1,1,0,0,0,0,0,0,1,1], 
+#                         [1,1,0,0,0,0,0,1,1,1], 
+#                         [1,1,1,0,0,0,0,0,1,1], 
+#                         [1,1,0,0,0,0,0,1,1,1], 
+                        
+#                         [0,1,1,0,1,1,0,1,1,1], 
+#                         [1,1,0,1,1,1,1,1,1,0], 
+#                         [0,0,0,0,0,0,1,1,1,1], 
+#                         [1,0,1,0,1,0,1,0,1,1]]), autograd=True)
+
+# target = Tensor(np.array([[1], [1], [1], [1], [0], [0], [0], [0]]), autograd = True)
+
+
 
 #model = Sequential([Linear(28*28,40), Tanh(), Linear(40, 10), Tanh(), Linear(10,10)])
-model = Sequential([Linear(784,40), Tanh(), Linear(40,10)])
+#model = Sequential([Linear(28*28,60), Tanh(), Linear(60,20), Tanh(), Linear(20,10), Sigmoid()])
+
+# generator = Sequential([Linear(1, 30), Tanh(), Linear(30,10), Tanh(), Linear(10, 10), Tanh()])
+# discriminator = Sequential([Linear(10,20), Tanh(), Linear(20, 1), Sigmoid()])
+
+
+generator = Sequential([Linear(1, 50), Sigmoid(), Linear(50,100), Sigmoid(),Linear(100,100), Sigmoid(), Linear(100, 28*28), Sigmoid()])
+
+discriminator = Sequential([Linear(28*28,30), Sigmoid(), Linear(30, 30), Sigmoid(), Linear(30,1) ,Sigmoid()])
 
 
 criterion = MSELoss()
 
-optim = SGD(parameters = model.get_parameters(), alpha=0.01)
+optim = SGD(parameters = discriminator.get_parameters(), alpha=0.0005)
 
-for i in range(2):
-    pred = model.forward(data)
-    print("DATA.shape = ", data.data.shape) 
-    print("PRED.shape = ", pred.data.shape)
-    print("PRED[0] = ", pred.data[0])
-    print("PRED[1] = ", pred.data[1])
-    print("\n\n")
-    if i>1: break
+#Training Discriminator
+for i in range(3000):
+    pred = discriminator.forward(data)
+    #print("DATA.shape = ", data.data.shape) 
+    #print("PRED.shape = ", pred.data.shape)
+    #print("TARGET.shape = ", target.data.shape)
+    #print("PRED = ", pred)
+    #print("TARGET = ", target)
+    #if i>1: break
     loss = criterion.forward(pred, target)
-    print("LOSS ", loss)
+    print("STEP {} \ LOSS {}".format(i, (np.sum(loss.data))), end= "\r")
     loss.backward(Tensor(np.ones_like(loss.data)))
     optim.step()
     np.set_printoptions(suppress=True)
-    #print("STEP {} \ LOSS {}".format(i, sum(loss.data)))
 
-
+print("DISCRIMINATOR TRAINED")
 
 
 print("NOW MODEL IS TRAINED")
 
+
+criterion = MSELoss()
+optim = SGD(parameters = generator.get_parameters(), alpha=0.001)
+
+
+target = Tensor(np.ones((784,1)), autograd = True)
+
+#Training Generator
+for i in range(4000):
+    data = Tensor(np.random.random((784,1)), autograd =True)
+    pred = generator.forward(data)
+    #print("TARGET:", target)
+    #d_test = Tensor(np.array(discriminator.forward(pred).data.copy()))
+    d_test = discriminator.forward(pred)
+    #print("PRED: ", pred)
+    #print("Dtest: ,",d_test)
+    loss = criterion.forward(d_test, target)
+    #print("Print loss: ", loss)
+    print("STEP {} \ LOSS {}".format(i, (np.sum(loss.data))), end= "\r")
+    loss.backward(Tensor(np.ones_like(loss.data)))
+    optim.step()
+    
+        
+        
+        
+
+
+print("GENERATOR TRAINED")
+
+new_image = generator.forward(Tensor(np.random.random(1)))
+pixels = new_image.data.reshape((28, 28))
+plt.imshow(pixels, cmap='gray')
+
+#for z in [1,22,33,55,100,10, 66,67,68,69,70]:
+#    x= x_train[z]
+#    x = Tensor(x)
+#    pp = model.forward(x)
+#    print("PRED: {} / REAL: {}".format(pp.data[z].argmax(), y_train[z].argmax()))
