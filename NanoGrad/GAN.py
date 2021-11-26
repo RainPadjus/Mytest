@@ -350,7 +350,7 @@ np.random.seed(0)
 #print(data.data)
 #print(target.data)
 
-data = Tensor(np.array([[1,1,1,0,0,0,0,0,0,0], 
+data_disc = Tensor(np.array([[1,1,1,0,0,0,0,0,0,0], 
                         [1,1,1,0,0,0,0,0,0,0], 
                         [1,1,1,0,0,0,0,0,0,0], 
                         [1,1,0,0,0,0,0,0,0,0], 
@@ -359,7 +359,7 @@ data = Tensor(np.array([[1,1,1,0,0,0,0,0,0,0],
                         [0,1,1,1,1,0,0,1,0,0], 
                         [0,0,0,0,1,0,0,0,1,0]]), autograd=True)
 
-target = Tensor(np.array([[1], [1], [1], [1], [0], [0], [0], [0]]), autograd = True)
+target_disc = Tensor(np.array([[1], [1], [1], [1], [0], [0], [0], [0]]), autograd = True)
 
 
 
@@ -371,54 +371,49 @@ discriminator = Sequential([Linear(10,20), Tanh(), Linear(20, 10), Sigmoid(), Li
 
 criterion = MSELoss()
 
-optim = SGD(parameters = discriminator.get_parameters(), alpha=0.05)
+optim_discriminator = SGD(parameters = discriminator.get_parameters(), alpha=0.005)
+optim_generator= SGD(parameters = generator.get_parameters(), alpha=0.005)
 
-#Training Discriminator
-for i in range(5000):
-    pred = discriminator.forward(data)
-    #print("DATA.shape = ", data.data.shape) 
-    #print("PRED.shape = ", pred.data.shape)
-    #print("TARGET.shape = ", target.data.shape)
-    #print("PRED = ", pred)
-    #print("TARGET = ", target)
-    #if i>1: break
-    loss = criterion.forward(pred, target)
-    print("STEP {} \ LOSS {}".format(i, (np.sum(loss.data))), end = "\r")
-    loss.backward(Tensor(np.ones_like(loss.data)))
-    optim.step()
-    np.set_printoptions(suppress=True)
+target_gen = Tensor(np.ones((10,1)), autograd = True)
 
+for epoch in range(100):
+    #Training Discriminator
+    for i in range(1000):
+        pred = discriminator.forward(data_disc)
+        loss = criterion.forward(pred, target_disc)
+        if i%1000==0:
+            print("DISCRIMINATOR : LOSS {}".format(np.sum(loss.data)))
 
+        loss.backward(Tensor(np.ones_like(loss.data)))
+        optim_discriminator.step()
+        np.set_printoptions(suppress=True)
 
 
-print("NOW MODEL IS TRAINED")
 
 
-criterion = MSELoss()
-optim = SGD(parameters = generator.get_parameters(), alpha=0.05)
+    
 
-#data = Tensor(np.array([[0.23], [0.45], [0.13], [0.98], [0.11], [0.77], [0.81], [0.53], [0.64], [0.19]]), autograd =True)
-#data = Tensor(np.random.random((10,1)), autograd =True)
+    #Training Generator
+    for i in range(1000):
+        data_gen = Tensor(np.random.random((10,1)), autograd =True)
+        pred = generator.forward(data_gen)
+        #print("TARGET:", target)
+        #d_test = Tensor(np.array(discriminator.forward(pred).data.copy()))
+        d_test = discriminator.forward(pred)
+        #print("PRED: ", pred)
+        #print("Dtest: ,",d_test)
+        loss = criterion.forward(d_test, target_gen)
+        if i%1000==0:
+            print("Generator :  LOSS {}".format(np.sum(loss.data)))
 
-target = Tensor(np.ones((10,1)), autograd = True)
+        loss.backward(Tensor(np.ones_like(loss.data)))
+        optim_generator.step()
 
-#Training Generator
-for i in range(5000):
-    data = Tensor(np.random.random((10,1)), autograd =True)
-    pred = generator.forward(data)
-    #print("TARGET:", target)
-    #d_test = Tensor(np.array(discriminator.forward(pred).data.copy()))
-    d_test = discriminator.forward(pred)
-    #print("PRED: ", pred)
-    #print("Dtest: ,",d_test)
-    loss = criterion.forward(d_test, target)
-    #print("Print loss: ", loss)
-    print("STEP {} \ LOSS {}".format(i, (np.sum(loss.data))), end = "\r")
-    loss.backward(Tensor(np.ones_like(loss.data)))
-    optim.step()
+    print("EPOCH: ", epoch)
+    print("Generating data: ")
+    print(generator.forward(Tensor(np.random.random(1))))
 
 
-print(generator.forward(Tensor(np.array([0.33]))))
 
 
 #for z in [1,22,33,55,100,10, 66,67,68,69,70]:
