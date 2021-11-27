@@ -298,57 +298,6 @@ class MSELoss(Layer):
         return ((pred-target)*(pred-target)).sum(0)
 
 
-from tensorflow import keras
-
-(x_train, y_train), (x_test, y_test) = keras.datasets.mnist.load_data()
-
-
-
-#####GAN
-np.random.seed(0)
-
-#x_train = x_train.astype("float32") / 255
-
-#x_train = x_train.reshape(60000, 28*28)[:1000]
-#y_train = y_train[:1000]
-
-
-#x_train_noise = np.random.random(x_train.shape)
-
-#one = np.ones(y_train.shape)
-#zero = np.zeros(y_train.shape)
-
-#x_train = np.concatenate((x_train, x_train_noise))
-#y_train = np.concatenate((one, zero))
-
-
-
-###############
-
-#np.random.seed(0)
-
-#x_train = x_train.astype("float32") / 255
-
-#x_train = x_train.reshape(60000, 28*28)[:1000]
-#y_train = y_train[:1000]
-
-#x_train_nose = np.random.random(x_train.shape)
-
-
-
-#new = [[0 for i in range(10)] for j in range(len(y_train))]
-
-#for x, i in enumerate(y_train):
-#    new[x][i] = 1
-
-#y_train = np.array(new)
-#x_train = np.array(x_train)
-
-#data = Tensor(x_train, autograd = True)
-#target = Tensor(y_train, autograd = True)
-
-#print(data.data)
-#print(target.data)
 
 data_disc = Tensor(np.array([[1,1,1,0,0,0,0,0,0,0], 
                         [1,1,1,0,0,0,0,0,0,0], 
@@ -362,10 +311,6 @@ data_disc = Tensor(np.array([[1,1,1,0,0,0,0,0,0,0],
 target_disc = Tensor(np.array([[1], [1], [1], [1], [0], [0], [0], [0]]), autograd = True)
 
 
-
-#model = Sequential([Linear(28*28,40), Tanh(), Linear(40, 10), Tanh(), Linear(10,10)])
-#model = Sequential([Linear(28*28,60), Tanh(), Linear(60,20), Tanh(), Linear(20,10), Sigmoid()])
-
 generator = Sequential([Linear(1, 30), Sigmoid(), Linear(30,10), Sigmoid(), Tanh(), Linear(10, 10), Sigmoid()])
 discriminator = Sequential([Linear(10,20), Tanh(), Linear(20, 10), Sigmoid(), Linear(10,1), Sigmoid()])
 
@@ -376,13 +321,13 @@ optim_generator= SGD(parameters = generator.get_parameters(), alpha=0.005)
 
 target_gen = Tensor(np.ones((10,1)), autograd = True)
 
-for epoch in range(100):
+for epoch in range(10):
     #Training Discriminator
     for i in range(1000):
         pred = discriminator.forward(data_disc)
         loss = criterion.forward(pred, target_disc)
-        if i%1000==0:
-            print("DISCRIMINATOR : LOSS {}".format(np.sum(loss.data)))
+        if i%100==0:
+            print("DISCRIMINATOR : LOSS {}".format(np.sum(loss.data)), end = "\r")
 
         loss.backward(Tensor(np.ones_like(loss.data)))
         optim_discriminator.step()
@@ -390,7 +335,7 @@ for epoch in range(100):
 
 
 
-
+    print("\n")
     
 
     #Training Generator
@@ -403,8 +348,8 @@ for epoch in range(100):
         #print("PRED: ", pred)
         #print("Dtest: ,",d_test)
         loss = criterion.forward(d_test, target_gen)
-        if i%1000==0:
-            print("Generator :  LOSS {}".format(np.sum(loss.data)))
+        if i%100==0:
+            print("Generator :  LOSS {}".format(np.sum(loss.data)), end = "\r")
 
         loss.backward(Tensor(np.ones_like(loss.data)))
         optim_generator.step()
@@ -413,11 +358,3 @@ for epoch in range(100):
     print("Generating data: ")
     print(generator.forward(Tensor(np.random.random(1))))
 
-
-
-
-#for z in [1,22,33,55,100,10, 66,67,68,69,70]:
-#    x= x_train[z]
-#    x = Tensor(x)
-#    pp = model.forward(x)
-#    print("PRED: {} / REAL: {}".format(pp.data[z].argmax(), y_train[z].argmax()))
